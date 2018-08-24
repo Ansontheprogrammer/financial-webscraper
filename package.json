@@ -1,0 +1,26 @@
+{
+  "name": "stock-analyzer",
+  "version": "1.0.0",
+  "description": "This is a stock analyzer powered by crawler",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "keywords": [
+    "stock",
+    "analyzer",
+    "npm",
+    "crawler",
+    "express"
+  ],
+  "author": "Anson",
+  "license": "MIT",
+  "dependencies": {
+    "crawler": "^1.2.0",
+    "finviz": "0.0.2"
+  },
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "mocha": "^5.2.0"
+  }
+}
