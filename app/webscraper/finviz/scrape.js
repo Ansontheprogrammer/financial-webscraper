@@ -1,6 +1,7 @@
 var finviz = require('finviz');
 var fs = require('fs')
-let stocks = ['NYMT','GPX']
+let stocks = "OPHT FWP TYHT CERC AMS AEZS".split(' ')
+let stockNum = stocks.length;
 let stockList = [];
 
 /* 
@@ -17,36 +18,36 @@ let stockList = [];
 	flow()
 }())
 
-function createFile(){	
-	if (stockList.length >= 2){
+function createFile(num){
+	// Wait for list to be made	
+	if (stockList.length >= num){
 		stockList.forEach(stock => {
 			let string = createStockString(stock);
 			console.log(string)
-			fs.appendFile('StockData.txt', string, (err) => {
+			fs.appendFile('Stocks-HealthCare.txt', string, (err) => {
 			if (err) throw err;
 			console.log('The file has been saved!\n', string);
-			console.log('hey there')
 			});
 		})
 	}
 }
 function createStockString(stock, ...args){
-	return `So heres data for ${stock.ticker}\n 
-	Price: ${stock.Price}\n
-	Dividend Percent: ${stock.dividendPercent}\n
+	return `Ticker: ${stock.ticker}\n 
+	Price: ${stock.price}
+	Market Cap: ${stock.marketCap} 
+	Dividend Percent: ${stock.dividendPercent}
 	Returns : \n
-		ROE: ${stock.ROE}\n
-		ROA: ${stock.ROA}\n
+		ROE: ${stock.ROE}
+		ROA: ${stock.ROA}
 		ROI: ${stock.ROI}\n
 	Margins: \n
-		Gross Margin: ${stock.grossMargin}\n
-		Profit Margin: ${stock.profitMargin} \n
-		operatingMargin: ${stock.operatingMargin} \n
+		Gross Margin: ${stock.grossMargin}
+		Profit Margin: ${stock.profitMargin} 
+		Operating Margin: ${stock.operatingMargin}\n
 	EPSPast5Y: ${stock.EPSPast5Y}\n\n`
 }
 
 function filterStockProps(data={},ticker){
-	console.log(data);
 	let stockData = {
 		ticker: ticker,
 		dividendPercent : data['Dividend %'],
@@ -54,12 +55,12 @@ function filterStockProps(data={},ticker){
 		ROA: data.ROA,
 		ROI: data.ROI,
 		EPSPast5Y: data['EPS past 5Y'],
-		Price: data.Price,
+		price: data.Price,
 		grossMargin: data['Gross Margin'],
 		profitMargin: data['Profit Margin'],
-		operatingMargin: data['Oper. Margin']
+		operatingMargin: data['Oper. Margin'],
+		marketCap: data['Market Cap']
 	}
-	console.log(stockData);
 	stockList.push(stockData);
 	return stockList
 }
@@ -70,7 +71,7 @@ function finvizCall(ticker){
 	            	filterStockProps(data,ticker);
 	            })
 	            .then(data => {
-	            	createFile()
+	            	createFile(stockNum)
 	            })
 	            .catch(err => console.error(err.stack ? err.stack : err));
 		} 
@@ -81,7 +82,7 @@ function getStocks(){
 }
 function flow(){
 	if (stockList === []){
-		setTimeOut(flow, 3000);
+		setTimeOut(flow, 1000);
 	} else{
 		return
 	}
