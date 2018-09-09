@@ -1,7 +1,7 @@
 var finviz = require('finviz');
 var fs = require('fs')
 var request = require('request');
-// let stocks = "OPHT FWP TYHT CERC AMS AEZS".split(' ')
+
 export function createFile(stockList: object[]){
 	// Wait for list to be made	
 	stockList.forEach((stock: any) => {
@@ -17,8 +17,8 @@ export function addToJsonServer(stockList: object[]){
 	stockList.forEach((stock: any) => {
 		let string = JSON.stringify(stock);
 		let jsonServer = 'http://localhost:3004/posts';
-		request.post(jsonServer,{form:{healthCare: stock}},(req:any, res:any)=>{
-			console.log(string, 'Was sent');
+		request.post(jsonServer,{form:{industries: {healthCare: stock}}},(req:any, res:any)=>{
+			console.log(string, '===Request sent to json server');
 		})
 	})
 }
