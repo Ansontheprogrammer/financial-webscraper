@@ -1,6 +1,8 @@
 var finviz = require('finviz');
 var fs = require('fs')
 var request = require('request');
+const sendmail = require('sendmail')();
+const nodemailer = require('nodemailer')
 
 export function createFile(stockList: object[]){
 	// Wait for list to be made	
@@ -11,6 +13,27 @@ export function createFile(stockList: object[]){
 		console.log('The file has been saved!\n', string);
 		});
 	})
+}
+export function sendEmail(){
+	var transporter = nodemailer.createTransport({
+		service: 'gmail',
+		auth: {
+			   user: 'ansonervin@gmail.com',
+			   pass: 'dreamg1rl'
+		   }
+	   });
+	const mailOptions = {
+		from: 'ansonervin@gmail.com', // sender address
+		to: 'forevertheproducer@gmail.com', // list of receivers
+		subject: 'Subject of your email', // Subject line
+		html: '<p>Your html here</p>'// plain text body
+	};
+	transporter.sendMail(mailOptions, function (err: any, info: any) {
+		if(err)
+		  console.log(err)
+		else
+		  console.log(info);
+	 });
 }
 export function addToJsonServer(stockList: object[]){
 	// Wait for list to be made	

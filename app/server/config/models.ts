@@ -1,4 +1,4 @@
-import * as scraper from '../scraper/scrape';
+import * as scraper from '../lib/declaration';
 
 export class StockList {
     stockList: any
@@ -6,7 +6,10 @@ export class StockList {
         this.stockList = stockList;
     }
     getStockValues(){
-        this.stockList = scraper.getStocks(this.stockList)
+        return scraper.getStocks(this.stockList)
+    }
+    sendEmail(){
+        return scraper.sendEmail();
     }
     flow(){
         if (this.stockList === []){
