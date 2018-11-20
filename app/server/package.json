@@ -1,0 +1,23 @@
+{
+  "name": "financial-webscraper",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Anson Ervin",
+  "license": "MIT",
+  "dependencies": {
+    "@types/node": "^10.12.0"
+  },
+  "devDependencies": {
+    "express": "^4.16.4",
+    "finviz": "0.0.2",
+    "json-server": "^0.14.0"
+  }
+}

@@ -1,8 +1,6 @@
 var finviz = require('finviz');
 var fs = require('fs')
 var request = require('request');
-const sendmail = require('sendmail')();
-const nodemailer = require('nodemailer')
 
 export function createFile(stockList: object[]){
 	// Wait for list to be made	
@@ -14,34 +12,14 @@ export function createFile(stockList: object[]){
 		});
 	})
 }
-export function sendEmail(){
-	var transporter = nodemailer.createTransport({
-		service: 'gmail',
-		auth: {
-			   user: 'ansonervin@gmail.com',
-			   pass: 'dreamg1rl'
-		   }
-	   });
-	const mailOptions = {
-		from: 'ansonervin@gmail.com', // sender address
-		to: 'forevertheproducer@gmail.com', // list of receivers
-		subject: 'Subject of your email', // Subject line
-		html: '<p>Your html here</p>'// plain text body
-	};
-	transporter.sendMail(mailOptions, function (err: any, info: any) {
-		if(err)
-		  console.log(err)
-		else
-		  console.log(info);
-	 });
-}
+
 export function addToJsonServer(stockList: object[]){
 	// Wait for list to be made	
 	stockList.forEach((stock: any) => {
-		let string = JSON.stringify(stock);
+		stock = JSON.stringify(stock);
 		let jsonServer = 'http://localhost:3004/posts';
-		request.post(jsonServer,{form:{industries: {healthCare: stock}}},(req:any, res:any)=>{
-			console.log(string, '===Request sent to json server');
+		request.post(jsonServer,{form:{stockList: stock}},(req:any, res:any)=>{
+			console.log(stock, '===Request sent to json server');
 		})
 	})
 }
@@ -79,36 +57,32 @@ export interface Stock {
 	marketCap: string
 }
 
-export function getStocks(stocks: string[]) {
+export function getStocks(stocks: string[]): void{
 	let stockDataList: object[] = [];
 	
-    function iterateStocks() {
-        stocks.forEach(function (stock: string) { return finvizCall(stock, createFile, filterStockProps); });
+    function iterateStocks(): any {
+        return stocks.forEach(function (stock: string) { 
+			return finvizCall(stock, createFile, filterStockProps); 
+		});
     }
-    function finvizCall(ticker: string, createFileFunction: any, filterStockPropsFunction: any) {
+    function finvizCall(ticker: string, createFileFunction: any, filterStockPropsFunction: any): void{
         if (ticker !== '') {
-            finviz.getStockData(ticker)
-                .then(function (data: any) {
-                return filterStockPropsFunction(data, ticker);
-            	})
-                .then(function (data: object) {
-                	stockDataList.push(data);
-                	if(stockDataList.length > 1){
-						addToJsonServer(stockDataList);
-					}
-            	})
-                .catch(function (err: any) { return console.error(err.stack ? err.stack : err); });
+			finviz.getStockData(ticker)
+			.then(function (data: any) {
+				return filterStockPropsFunction(data, ticker);
+			})
+			.then(function (data: object) {
+				stockDataList.push(data);
+				console.log("===Received data from finviz", stockDataList)
+				if(stockDataList.length >= 1){
+					return stockDataList;
+				} else{
+					console.error("Data was not saved.", stockDataList)
+				}
+			})
+			.then((data: object[]) => addToJsonServer(data))
+			.catch((err: any) => console.error(err)
         }
-    }
-    function calls() {
-        iterateStocks();
-        function create() {
-            if (stockDataList.length > 0) {
-				return stockDataList;
-            }
-			setTimeout(create, 3000);
-        }
-        return create();
 	}
-	return calls()
+	return iterateStocks();
 }
