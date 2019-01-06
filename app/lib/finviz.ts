@@ -79,40 +79,45 @@ const setResponseHeader = res => res.set({
 
 export function getStockList(req: any, res: any, next: any){
 	setResponseHeader(res)
-	Database.getStockList(req.params.id).then(data => {
+	Database.findStockListInDatabase(req.params.id).then(data => {
 		res.json(data)
 	}
 	, err => next(err))
 }
 
-export function getStock(req: any, res: any, next: any){
-	setResponseHeader(res)
-
-	Database.getStock(req.params.id).then(data => {
-		res.json(data)
-	}
-	, err => next(err))
-}
-
-export function getUser(req: any, res: any, next: any){
-	setResponseHeader(res)
-
-	Database.getUser(req.params.id).then(data => {
-		res.json(data)
-	}
-	, err => next(err))
+async function getUser(res, next, email, name){
+	try {
+		const docs = await Database.findUserInDatabase(email)
+		const userStockListCollection = docs.map(doc => doc.stockListCollection)
+		console.log(userStockListCollection, 'user stock list ')
+		const desiredStockList = userStockListCollection.find(list => list[0].name === name);
+		if(!!desiredStockList){
+			const stockListDoc = await Database.findStockListInDatabase(desiredStockList.stockListID);
+			const stockList = [];
+			let count = 0;
+			stockListDoc.list.forEach(tickerID => {
+				Database.findStockInDatabase(tickerID).then(data => {
+					stockList.push(data);
+					console.log(data)
+					count++
+					if(count === stockListDoc.list.length - 1) res.json(stockList);
+				})
+			})
+		}
+		else console.log('stocklist not found')
+	} catch(err) { next(err) }
+	
 }
 
 export function webhook(req, res, next){
-	const { data, email } = req.params;
+	setResponseHeader(res);
+	const { data, email, name } = req.params;
 	
-	res.send('Okay redirecting')
-	res.redirect(`/api/webhook/${data}/${email}`)
+	if(data === 'getUser') return getUser(res, next, email, name);
 }
 
 export function postStockList(req: any, res: any, next: any){
 	setResponseHeader(res);
-
 	const { tickerList, name, email } = req.body;
 	const stockList = new StockList();
 		
@@ -145,6 +150,6 @@ export function postStockList(req: any, res: any, next: any){
 		retryIfNeeded()
 	}	
 
-	res.status(202).send('Stocks were accected and are now processing.');
+	res.sendStatus(200);
 	setStockData();
 }

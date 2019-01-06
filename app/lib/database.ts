@@ -1,8 +1,12 @@
 import mongoose from 'mongoose';
 import { STOCK_MODEL } from './finviz';
 
-const url = "mongodb+srv://AnsonErvin:dreamg1rl@cluster0-gs1k4.gcp.mongodb.net/test?retryWrites=true"
+type STOCK = {
+	ticker: string,
+	id: string
+}
 
+const url = 'mongodb://127.0.0.1:27017'
 // connecting to mongo and creating schema
 mongoose.connect(url);
 const Schema = mongoose.Schema;
@@ -22,6 +26,7 @@ const stockSchema = {
 	marketCap: String
 }
 
+// *******************SCHEMA DECLARATIONS***************************
 const schemas = {
 	stock: new Schema(stockSchema, { autoIndex: false }),
 	stockList: new Schema({ 
@@ -35,10 +40,7 @@ const schemas = {
 	 }, { autoIndex: false })
 }
 
-type STOCK = {
-	ticker: string,
-	id: string
-}
+// **********************SCHEMA METHODS****************************
 
 export class Database {
 	/* 
@@ -59,30 +61,84 @@ export class Database {
 	database an object containing { email, stockListModel[]}
 	***************************************************************
 	***************************************************************
-
+KO
 	*/	
 	public static stockIDCollection: STOCK[] = [];
 	
-	private static saveUser(stockListInfo, email){
-		const { name, stockListID } = stockListInfo;
+	public static saveUser(stockListInfo, email){
 		const UserModel = mongoose.model('User', schemas.user);
+		
 		const user = new UserModel({ 
-			stockListCollection: [{ name, stockListID }],
+			stockListCollection: [ stockListInfo ],
 			email,
-		});
+		})
+
 		user.save(function(err, userID: mongoose.Document){
 			if(err) console.error(err);
 			console.log('Saved new user of ID', userID._id);
 		})
 	}
 
+	public static findUserInDatabase(email): Promise<any[]>{
+		return new Promise((resolve, reject) => {
+			const UserModel = mongoose.model('User', schemas.user);
+			UserModel.find({ email }, (err, docs) => {
+				if(err) reject(err);
+				if(docs === []) reject();
+				// Must convert mongoose documents to js objects
+				resolve(docs.map(doc => doc.toObject()))
+			})
+		})
+	}
+
+	public static findStockInDatabase(userID): Promise<mongoose.Document>{
+		const StockModel = mongoose.model('Stock', schemas.stock);
+
+		return new Promise((resolve, reject) => {
+			StockModel.findById(userID, function(err, doc){
+				if(err) reject(err);
+				resolve(doc.toObject())
+			})
+		})
+	}
+
+	public static findStockListInDatabase(userID): Promise<any>{
+		const StockModel = mongoose.model('StockList', schemas.stockList);
+		return new Promise((resolve, reject) => {
+			StockModel.findById(userID, function(err, doc){
+				if(err) reject(err);
+				else resolve(doc.toObject())
+			})
+		})
+	}
+
+	public static updateUserStockList(email, stockListInfo){
+		Database.findUserInDatabase(email).then(docs => {
+			const doc = docs[0];
+			
+			doc.stockListCollection = doc.stockListCollection.push({stockListInfo});
+			doc.save(function(err, updatedDoc){
+				if(err) console.error(err);
+				console.log('Updated User:', email)
+			})
+		})
+	}
+
 	public static saveStockList(stockList: STOCK_MODEL, email: string, name: string){
 		const StockListModel = mongoose.model('StockList', schemas.stockList);
 		const list = new StockListModel(stockList);
+
 		list.save(function(err, stockListID: mongoose.Document){
 			if(err) console.error(err);
 			console.log('Saved new stock list of ID:', stockListID._id)
-			Database.saveUser({ stockListID: stockListID._id, name }, email)
+			const stockListInfo = { stockListID: stockListID._id, name };
+			Database.findUserInDatabase(email).then(doc => {
+				console.log('Updating user: ', email);
+				Database.updateUserStockList(email, stockListInfo);
+			}, err => {
+				console.log('Saving new user: ', email)
+				Database.saveUser(stockListInfo, email)
+			})
 		})
 	}
 
@@ -118,35 +174,5 @@ export class Database {
 				}
 			})
 		}())
-	}
-
-	public static getStock(userID){
-		const StockModel = mongoose.model('Stock', schemas.stock);
-		return new Promise((resolve, reject) => {
-			StockModel.findById(userID, function(err, res){
-				if(err) reject(err);
-				else resolve(res)
-			})
-		})
-	}
-
-	public static getStockList(userID){
-		const StockModel = mongoose.model('StockList', schemas.stockList);
-		return new Promise((resolve, reject) => {
-			StockModel.findById(userID, function(err, res){
-				if(err) reject(err);
-				else resolve(res)
-			})
-		})
-	}
-
-	public static getUser(userID){
-		const StockModel = mongoose.model('User', schemas.user);
-		return new Promise((resolve, reject) => {
-			StockModel.findById(userID, function(err, res){
-				if(err) reject(err);
-				else resolve(res)
-			})
-		})
 	}
 }
