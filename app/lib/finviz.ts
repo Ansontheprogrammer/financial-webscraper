@@ -88,6 +88,7 @@ export function getStockList(req: any, res: any, next: any){
 async function getUser(res, next, email, name){
 	try {
 		const docs = await Database.findUserInDatabase(email)
+		console.log('inside findUserIndatabase', docs)
 		const userStockListCollection = docs.map(doc => doc.stockListCollection)
 		console.log(userStockListCollection, 'user stock list ')
 		const desiredStockList = userStockListCollection.find(list => list[0].name === name);
@@ -131,7 +132,7 @@ export function postStockList(req: any, res: any, next: any){
 				StockList.getStockDataFromFinviz(ticker).then(stock => {
 					stockList.pushToStockList(stock)
 					count++
-					if(count === tickerList.length - 1 || tickerList.length === 1) {
+					if(count === tickerList.length|| tickerList.length === 1) {
 						// Retrieved all stock data
 						Database.saveStock(stockList, email, name)
 						// should send a request to an internal webhook when completed

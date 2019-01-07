@@ -61,32 +61,17 @@ export class Database {
 	database an object containing { email, stockListModel[]}
 	***************************************************************
 	***************************************************************
-KO
 	*/	
 	public static stockIDCollection: STOCK[] = [];
-	
-	public static saveUser(stockListInfo, email){
-		const UserModel = mongoose.model('User', schemas.user);
-		
-		const user = new UserModel({ 
-			stockListCollection: [ stockListInfo ],
-			email,
-		})
 
-		user.save(function(err, userID: mongoose.Document){
-			if(err) console.error(err);
-			console.log('Saved new user of ID', userID._id);
-		})
-	}
-
-	public static findUserInDatabase(email): Promise<any[]>{
+	public static findUserInDatabase(email, raw?: boolean): Promise<any[]>{
 		return new Promise((resolve, reject) => {
 			const UserModel = mongoose.model('User', schemas.user);
 			UserModel.find({ email }, (err, docs) => {
 				if(err) reject(err);
 				if(docs === []) reject();
 				// Must convert mongoose documents to js objects
-				resolve(docs.map(doc => doc.toObject()))
+				raw ? resolve(docs) : resolve(docs.map(doc => doc.toObject()))
 			})
 		})
 	}
@@ -113,14 +98,27 @@ KO
 	}
 
 	public static updateUserStockList(email, stockListInfo){
-		Database.findUserInDatabase(email).then(docs => {
+		Database.findUserInDatabase(email, true).then(docs => {
 			const doc = docs[0];
-			
-			doc.stockListCollection = doc.stockListCollection.push({stockListInfo});
+			(doc as any).stockListCollection.push({stockListInfo});
 			doc.save(function(err, updatedDoc){
 				if(err) console.error(err);
-				console.log('Updated User:', email)
+				console.log('Finished update')
 			})
+		})
+	}
+	
+	public static saveUser(stockListInfo, email){
+		const UserModel = mongoose.model('User', schemas.user);
+		
+		const user = new UserModel({ 
+			stockListCollection: [ stockListInfo ],
+			email,
+		})
+
+		user.save(function(err, userID: mongoose.Document){
+			if(err) console.error(err);
+			console.log('Saved new user of ID', userID._id);
 		})
 	}
 
@@ -133,11 +131,15 @@ KO
 			console.log('Saved new stock list of ID:', stockListID._id)
 			const stockListInfo = { stockListID: stockListID._id, name };
 			Database.findUserInDatabase(email).then(doc => {
-				console.log('Updating user: ', email);
-				Database.updateUserStockList(email, stockListInfo);
+				if(doc.length){
+					console.log('Updating user: ', email);
+					Database.updateUserStockList(email, stockListInfo);
+				} else {
+					console.log('Saving new user: ', email)
+					Database.saveUser(stockListInfo, email)
+				}
 			}, err => {
-				console.log('Saving new user: ', email)
-				Database.saveUser(stockListInfo, email)
+				throw err
 			})
 		})
 	}
