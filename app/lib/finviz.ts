@@ -77,42 +77,12 @@ const setResponseHeader = res => {
 	res.append('Content-Type', 'application/json')
 };
 
-export function getStockList(req: any, res: any, next: any){
+export function getUser(req: any, res: any, next: any){
 	setResponseHeader(res)
-	Database.findStockListInDatabase(req.params.id).then(data => {
+	Database.findStockListInDatabase(req.params.email).then(data => {
 		res.json(data)
 	}
 	, err => next(err))
-}
-
-export function getUser(req, res, next){
-	setResponseHeader(res);
-	const { email, name } = req.params;
-
-	searchDatabase();
-	
-	async function searchDatabase(){
-		try {
-			const docs = await Database.findUserInDatabase(email)
-			const userStockListCollection = docs.map(doc => doc.stockListCollection)
-			console.log(userStockListCollection, 'user stock list ')
-			const desiredStockList = userStockListCollection.find(list => list[0].name === name);
-			if(!!desiredStockList){
-				const stockListDoc = await Database.findStockListInDatabase(desiredStockList.stockListID);
-				const stockList = [];
-				let count = 0;
-				stockListDoc.list.forEach(tickerID => {
-					Database.findStockInDatabase(tickerID).then(data => {
-						stockList.push(data);
-						console.log(data)
-						count++
-						if(count === stockListDoc.list.length - 1) res.json(stockList);
-					})
-				})
-			}
-			else console.log('stocklist not found')
-		} catch(err) { next(err) }
-	}
 }
 
 export function postStockList(req: any, res: any, next: any){
