@@ -72,10 +72,10 @@ export class StockList {
 	}
 }
 
-const setResponseHeader = res => res.set({
-	'Access-Control-Allow-Origin': 'http://localhost:3000',
-	'Content-Type': 'application/json',
-});
+const setResponseHeader = res => {
+	res.append('Access-Control-Allow-Origin', 'http://localhost:3000')
+	res.append('Content-Type', 'application/json')
+};
 
 export function getStockList(req: any, res: any, next: any){
 	setResponseHeader(res)
@@ -85,36 +85,34 @@ export function getStockList(req: any, res: any, next: any){
 	, err => next(err))
 }
 
-async function getUser(res, next, email, name){
-	try {
-		const docs = await Database.findUserInDatabase(email)
-		console.log('inside findUserIndatabase', docs)
-		const userStockListCollection = docs.map(doc => doc.stockListCollection)
-		console.log(userStockListCollection, 'user stock list ')
-		const desiredStockList = userStockListCollection.find(list => list[0].name === name);
-		if(!!desiredStockList){
-			const stockListDoc = await Database.findStockListInDatabase(desiredStockList.stockListID);
-			const stockList = [];
-			let count = 0;
-			stockListDoc.list.forEach(tickerID => {
-				Database.findStockInDatabase(tickerID).then(data => {
-					stockList.push(data);
-					console.log(data)
-					count++
-					if(count === stockListDoc.list.length - 1) res.json(stockList);
-				})
-			})
-		}
-		else console.log('stocklist not found')
-	} catch(err) { next(err) }
-	
-}
-
-export function webhook(req, res, next){
+export function getUser(req, res, next){
 	setResponseHeader(res);
-	const { data, email, name } = req.params;
+	const { email, name } = req.params;
+
+	searchDatabase();
 	
-	if(data === 'getUser') return getUser(res, next, email, name);
+	async function searchDatabase(){
+		try {
+			const docs = await Database.findUserInDatabase(email)
+			const userStockListCollection = docs.map(doc => doc.stockListCollection)
+			console.log(userStockListCollection, 'user stock list ')
+			const desiredStockList = userStockListCollection.find(list => list[0].name === name);
+			if(!!desiredStockList){
+				const stockListDoc = await Database.findStockListInDatabase(desiredStockList.stockListID);
+				const stockList = [];
+				let count = 0;
+				stockListDoc.list.forEach(tickerID => {
+					Database.findStockInDatabase(tickerID).then(data => {
+						stockList.push(data);
+						console.log(data)
+						count++
+						if(count === stockListDoc.list.length - 1) res.json(stockList);
+					})
+				})
+			}
+			else console.log('stocklist not found')
+		} catch(err) { next(err) }
+	}
 }
 
 export function postStockList(req: any, res: any, next: any){
@@ -133,9 +131,8 @@ export function postStockList(req: any, res: any, next: any){
 					stockList.pushToStockList(stock)
 					count++
 					if(count === tickerList.length|| tickerList.length === 1) {
-						// Retrieved all stock data
-						Database.saveStock(stockList, email, name)
-						// should send a request to an internal webhook when completed
+						console.log('in dataa')
+						Database.saveStock(stockList, email, name, res).then(() => res.sendStatus(200), err => next(err))
 					}
 				}, err => {
 					// if err call finviz up to 3 times to get stock data
@@ -147,10 +144,7 @@ export function postStockList(req: any, res: any, next: any){
 				})	
 			})
 		}
-
 		retryIfNeeded()
 	}	
-
-	res.sendStatus(200);
 	setStockData();
 }
