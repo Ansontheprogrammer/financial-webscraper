@@ -74,8 +74,6 @@ describe('Database GET routes', () => {
     //         });
     //     })
     // })
-})
-
 // describe('should complete whole stock list -> database POST route', () =>{
 //     const tickerList = ['NRMT', 'AARGPL', 'NASDSQ'];
 //     it('should test for invalid stock ticker', done => {
