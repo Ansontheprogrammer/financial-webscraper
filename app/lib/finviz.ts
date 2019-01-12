@@ -88,6 +88,7 @@ export function getUser(req: any, res: any, next: any){
 export function postStockList(req: any, res: any, next: any){
 	setResponseHeader(res);
 	const { tickerList, name, email } = req.body;
+	console.log('Storing new stock list', email, tickerList);
 	const stockList = new StockList();
 		
 
@@ -101,12 +102,11 @@ export function postStockList(req: any, res: any, next: any){
 					stockList.pushToStockList(stock)
 					count++
 					if(count === tickerList.length|| tickerList.length === 1) {
-						console.log('in dataa')
 						Database.saveStock(stockList, email, name, res).then(() => res.sendStatus(200), err => next(err))
 					}
 				}, err => {
 					// if err call finviz up to 3 times to get stock data
-					if(!retries) return next(`THERE WAS AN ERROR COLLECTING ALL STOCK DATA, HERE IS YOUR UPLOADED STOCKS\n ${stockList.getStockList()}` );
+					if(!retries) return next(`THERE WAS AN ERROR COLLECTING ALL STOCK DATA, HERE IS YOUR UPLOADED STOCKS` );
 					else {
 						retries--
 						retryIfNeeded()
