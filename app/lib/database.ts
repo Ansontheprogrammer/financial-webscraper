@@ -76,23 +76,36 @@ export class Database {
 		})
 	}
 
-	public static findStockInDatabase(userID): Promise<mongoose.Document>{
+	public static findStockInDatabase(ticker): Promise<mongoose.Document>{
 		const StockModel = mongoose.model('Stock', schemas.stock);
 
 		return new Promise((resolve, reject) => {
-			StockModel.findById(userID, function(err, doc){
+			StockModel.findOne({ ticker, }, function(err, doc){
 				if(err) reject(err);
-				resolve(doc)
+				else resolve(doc)
 			})
 		})
 	}
 
-	public static findStockListInDatabase(email): Promise<any>{
+	public static findStockListInDatabase(email: string, portfolioName?: string): Promise<any>{
 		const StockModel = mongoose.model('StockList', schemas.stockList);
+		let count = 0;
+		const stockData = [];
+		const onlyUnique = (value, index, self)  => self.indexOf(value) === index;
+		
+
 		return new Promise((resolve, reject) => {
-			StockModel.find({ email  }, function(err, doc){
-				if(err) reject(err);
-				else resolve(doc)
+			StockModel.find({ email, name: portfolioName  }, function(err, docs: any){
+				if(err) return reject(err);
+				if(!docs.length) return reject();
+				// NOTE: make it so the only one list can be saved under a portfolio name
+				// converting docs[0].list into an unique array before quering
+				const uniqueStockList = docs[0].list.filter(onlyUnique);
+				uniqueStockList.forEach(ticker => Database.findStockInDatabase(ticker).then(stock => {
+					stockData.push(stock)
+					count++ 
+					if(count === uniqueStockList.length) resolve(stockData);
+				}))
 			})
 		})
 	}
