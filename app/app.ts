@@ -12,7 +12,7 @@ app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
 app.use(express.json());       // to support JSON-encoded bodies
 app.use(express.static('public'))
 
-app.get('/api/getUser/:email', finviz.getUser)
+app.get('/api/getUser/:email/:name', finviz.getUser)
 app.post('/api/postStockList', finviz.postStockList);
 app.post('/api/compoundInterest', () => {});
 app.get('/api/ping', (req, res, next) => {
