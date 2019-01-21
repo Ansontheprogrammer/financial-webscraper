@@ -79,15 +79,16 @@ const setResponseHeader = res => {
 
 export function getUser(req: any, res: any, next: any){
 	setResponseHeader(res)
-	Database.findStockListInDatabase(req.params.email).then(data => {
+	const { email, name } = req.params
+	Database.findStockListInDatabase(email, name).then(data => {
+		console.log(`Sending data for tickers: ${data.map(stock => stock.ticker)}`)
 		res.json(data)
-	}
-	, err => next(err))
+	}, err => console.error(`No portfolio was found under name: ${name}`))
 }
 
 export function postStockList(req: any, res: any, next: any){
 	setResponseHeader(res);
-	const { tickerList, name, email } = req.body;
+	const { name, email, tickerList } = req.body;
 	console.log('Storing new stock list', email, tickerList);
 	const stockList = new StockList();
 		
