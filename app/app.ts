@@ -1,4 +1,4 @@
-import * as finviz from './lib/finviz'
+import * as router from './lib/router'
 
 const express = require('express');
 export const app = (express as any)();
@@ -12,9 +12,8 @@ app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
 app.use(express.json());       // to support JSON-encoded bodies
 app.use(express.static('public'))
 
-app.get('/api/getUser/:email/:name', finviz.getUser)
-app.post('/api/postStockList', finviz.postStockList);
-app.post('/api/compoundInterest', () => {});
+app.get('/api/getUser/:email/:name', router.getUser)
+app.post('/api/postStockList', router.postStockList);
 app.get('/api/ping', (req, res, next) => {
   res.sendStatus(200);
 })
