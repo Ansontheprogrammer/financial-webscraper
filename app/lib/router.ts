@@ -17,16 +17,18 @@ export function getUser(req: any, res: any, next: any){
 
 export function postStockList(req: any, res: any, next: any){
 	setResponseHeader(res);
-	const { name, email, tickerList } = req.body;
+	const { name, email } = req.body;
+	let tickerList: string[] = req.body.tickerList;
 	console.log('Storing new stock list', email, tickerList);
 	const stockList = new StockList();
 		
-
 	function setStockData(){
 		let retries = 2;
 		let count = 0;
 
-		function retryIfNeeded(){
+		function saveStockData(){
+			// convert all stock tickers to capital letters before retrieving stock data
+			tickerList = tickerList.map(ticker => ticker.toUpperCase());
 			tickerList.forEach((ticker: string) => {
 				StockList.getStockDataFromFinviz(ticker).then(stock => {
 					stockList.pushToStockList(stock)
@@ -36,15 +38,15 @@ export function postStockList(req: any, res: any, next: any){
 					}
 				}, err => {
 					// if err call finviz up to 3 times to get stock data
-					if(!retries) return next(`THERE WAS AN ERROR COLLECTING ALL STOCK DATA, HERE IS YOUR UPLOADED STOCKS` );
+					if(!retries) return next(`THERE WAS AN ERROR COLLECTING ALL STOCK DATA, HERE IS YOUR UPLOADED STOCKS`);
 					else {
 						retries--
-						retryIfNeeded()
+						saveStockData()
 					}
 				})	
 			})
 		}
-		retryIfNeeded()
+		saveStockData()
 	}	
 	setStockData();
 }
