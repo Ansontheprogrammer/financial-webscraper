@@ -6,9 +6,14 @@ type STOCK = {
 	id: string
 }
 
-const url = 'mongodb://127.0.0.1:27017'
+const url = `mongodb://Anson:m4cGCRr2lKENVAT7@cluster0-shard-00-00-mqzwm.mongodb.net:27017,cluster0-shard-00-01-mqzwm.mongodb.net:27017,cluster0-shard-00-02-mqzwm.mongodb.net:27017/test?ssl=true&replicaSet=Cluster0-shard-0&authSource=admin&retryWrites=true`
 // connecting to mongo and creating schema
-mongoose.connect(url);
+mongoose.connect(url, {
+	useNewUrlParser: true,
+}).then(()=> { console.log('connection to database successful') 
+	}, err => console.error(err))
+
+// *******************SCHEMA DECLARATIONS***************************
 const Schema = mongoose.Schema;
 
 const stockSchema = { 
@@ -26,7 +31,6 @@ const stockSchema = {
 	marketCap: String
 }
 
-// *******************SCHEMA DECLARATIONS***************************
 const schemas = {
 	stock: new Schema(stockSchema, { autoIndex: false }),
 	stockList: new Schema({ 
@@ -44,23 +48,6 @@ const schemas = {
 
 export class Database {
 	/* 
-	***************************************************************
-	***************************************************************
-
-	************************DATABASE*******************************
-	Every stock that is requested is made into a model and saved to 
-	the database as a StockModel.
-		The stockID, ticker and the id of the user's who have requested
-		this stock are saved into a local collection for faster access.
-
-	Every stockList created with be made into a model and saved into
-	the database as a StockListModel
-		The stockList will contain a collection of { stockID, ticker }
-
-	Every User created will be made into a model that saves into the
-	database an object containing { email, stockListModel[]}
-	***************************************************************
-	***************************************************************
 	*/	
 	public static stockIDCollection: STOCK[] = [];
 

@@ -39,7 +39,7 @@ export class StockList {
 		this.stockList.push(stock)
 	}
 
-	public static getStockDataFromFinviz(ticker: string): Promise<STOCK>{
+	public getStockDataFromFinviz(ticker: string): Promise<STOCK>{
 		return new Promise((resolve, reject) => {
 			finviz.getStockData(ticker)
 			.then((allStockData: any) => resolve(StockList.filterStockProps(allStockData, ticker)))
