@@ -1,8 +1,8 @@
 import * as router from './lib/router'
-import  * as express from  'express';
 import  * as bodyParser from 'body-parser';
+const express = require('express');
 
-export const app = (express as any)();
+export const app = (express )();
 const port = process.env.PORT || 80;
 
 app.use(bodyParser.json());       // to support JSON-encoded bodies
@@ -12,8 +12,8 @@ app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
 app.use(express.json());       // to support JSON-encoded bodies
 app.use(express.static('public'))
 
-app.get('/api/node/database/getUser/:email/:name', router.getUser)
-app.post('/api/node/finance/postStockList', router.postStockList);
+app.get('/api/getUser/:email/:name', router.getUser)
+app.post('/api/postStockList/:email', router.retrieveStockData);
 app.get('/api/ping', (req, res, next) => {
   res.sendStatus(200);
 })
