@@ -51,7 +51,7 @@ export class StockList {
 		// during times of the market, data must be retrieved multiple times
 		if(!data){
 			console.error('Data not retrieved, fetching again')
-			StockList.getStockDataFromFinviz(ticker)
+			new StockList().getStockDataFromFinviz(ticker)
 		} else { console.log('Retrieved Data for: ', ticker) }
 	
 		return {

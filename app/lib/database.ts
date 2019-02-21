@@ -47,8 +47,6 @@ const schemas = {
 // **********************SCHEMA METHODS****************************
 
 export class Database {
-	/* 
-	*/	
 	public static stockIDCollection: STOCK[] = [];
 
 	public static findUserInDatabase(email, raw?: boolean): Promise<any[]>{
@@ -79,7 +77,6 @@ export class Database {
 		let count = 0;
 		const stockData = [];
 		const onlyUnique = (value, index, self)  => self.indexOf(value) === index;
-		
 
 		return new Promise((resolve, reject) => {
 			StockModel.find({ email, name: portfolioName  }, function(err, docs: any){

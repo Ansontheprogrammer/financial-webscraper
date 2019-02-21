@@ -13,6 +13,7 @@ app.use(express.json());       // to support JSON-encoded bodies
 app.use(express.static('public'))
 
 app.get('/api/getUser/:email/:name', router.getUser)
+app.get('/api/getStockList/:email/:name', router.getStockList)
 app.post('/api/postStockList/:email', router.retrieveStockData);
 app.get('/api/ping', (req, res, next) => {
   res.sendStatus(200);

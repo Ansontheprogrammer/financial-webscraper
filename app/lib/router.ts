@@ -8,6 +8,15 @@ const setResponseHeader = res => {
 
 export function getUser(req: any, res: any, next: any){
 	setResponseHeader(res)
+	const email = req.params.email
+	Database.findUserInDatabase(email, true).then(data => {
+		console.log(`Sending user ${email}`)
+		res.json(data)
+	}, err => next(`No user  was found under: email - ${email} `, err))
+}
+
+export function getStockList(req: any, res: any, next: any){
+	setResponseHeader(res)
 	const { email, name } = req.params
 	Database.findStockListInDatabase(email, name).then(data => {
 		console.log(`Sending portfolio ${name} with tickers: ${data.map(stock => stock.ticker)}`)
@@ -18,7 +27,8 @@ export function getUser(req: any, res: any, next: any){
 export function retrieveStockData (req: any, res: any, next: any){
 	// This route takes a name, and email that are strings. Also the tickerList must be an array.
 	setResponseHeader(res);
-	const { name, email} = req.body;
+	const name = req.body.name
+	const email = req.params.email;
 	let tickerList: string[] = req.body.tickerList;
 	let count = 0;
 	let retries = 2;
