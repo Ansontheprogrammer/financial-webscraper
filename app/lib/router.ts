@@ -12,7 +12,7 @@ export function getUser(req: any, res: any, next: any){
 	Database.findUserInDatabase(email, true).then(data => {
 		console.log(`Sending user ${email}`)
 		res.json(data)
-	}, err => next(`No user  was found under: email - ${email} `, err))
+	}, err => res.status(400).send(JSON.stringify(`No user was found under: email - ${email}`)))
 }
 
 export function getStockList(req: any, res: any, next: any){
@@ -21,7 +21,7 @@ export function getStockList(req: any, res: any, next: any){
 	Database.findStockListInDatabase(email, name).then(data => {
 		console.log(`Sending portfolio ${name} with tickers: ${data.map(stock => stock.ticker)}`)
 		res.json(data)
-	}, err => next(`No portfolio was found under: email - ${email} and name - ${name}`, err))
+	}, err =>  res.status(400).send(JSON.stringify(`No stock list was found under: email - ${name}`)))
 }
 
 export function retrieveStockData (req: any, res: any, next: any){

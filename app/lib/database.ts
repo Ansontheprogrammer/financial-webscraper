@@ -54,7 +54,7 @@ export class Database {
 			const UserModel = mongoose.model('User', schemas.user);
 			UserModel.find({ email }, (err, docs) => {
 				if(err) reject(err);
-				if(docs === []) reject();
+				if(!docs.length) reject();
 				// Must convert mongoose documents to js objects
 				raw ? resolve(docs) : resolve(docs.map(doc => doc.toObject()))
 			})
