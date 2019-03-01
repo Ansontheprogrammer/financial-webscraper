@@ -53,7 +53,7 @@ describe('Stocklist class', () => {
    })
    
    it('should retieve stock data from finviz', function(done) {
-    this.timeout (9000);
+    this.timeout (10000);
     stockList.getStockDataFromFinviz('NYMT').then(stock => {
         assert.deepEqual(stock, expectedStockData);  
         done()

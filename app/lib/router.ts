@@ -27,7 +27,7 @@ export function getStockList(req: any, res: any, next: any){
 export function retrieveStockData (req: any, res: any, next: any){
 	// This route takes a name, and email that are strings. Also the tickerList must be an array.
 	setResponseHeader(res);
-	const {email, name} = req.body;
+	const { email, name } = req.body;
 	let tickerList: string[] = req.body.tickerList;
 	let count = 0;
 	let retries = 2;

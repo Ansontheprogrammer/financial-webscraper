@@ -49,14 +49,14 @@ const schemas = {
 export class Database {
 	public static stockIDCollection: STOCK[] = [];
 
-	public static findUserInDatabase(email, raw?: boolean): Promise<any[]>{
+	public static findUserInDatabase(email, noConversion?: boolean): Promise<any[]>{
 		return new Promise((resolve, reject) => {
 			const UserModel = mongoose.model('User', schemas.user);
 			UserModel.find({ email }, (err, docs) => {
 				if(err) reject(err);
-				if(!docs.length) reject();
+				if(!docs.length) reject('No user was found');
 				// Must convert mongoose documents to js objects
-				raw ? resolve(docs) : resolve(docs.map(doc => doc.toObject()))
+				noConversion ? resolve(docs) : resolve(docs.map(doc => doc.toObject()))
 			})
 		})
 	}
@@ -67,6 +67,7 @@ export class Database {
 		return new Promise((resolve, reject) => {
 			StockModel.findOne({ ticker, }, function(err, doc){
 				if(err) reject(err);
+				if(!doc) reject('Stock not in database');
 				else resolve(doc)
 			})
 		})
@@ -79,9 +80,10 @@ export class Database {
 		const onlyUnique = (value, index, self)  => self.indexOf(value) === index;
 
 		return new Promise((resolve, reject) => {
-			StockModel.find({ email, name: portfolioName  }, function(err, docs: any){
+			const findList = portfolioName ? { email } : { email, name: portfolioName }
+			StockModel.find(findList, function(err, docs: any){
 				if(err) return reject(err);
-				if(!docs.length) return reject();
+				if(!docs.length) return reject('Stock list not in database' );
 				// NOTE: make it so the only one list can be saved under a portfolio name
 				// converting docs[0].list into an unique array before quering
 				const uniqueStockList = docs[0].list.filter(onlyUnique);

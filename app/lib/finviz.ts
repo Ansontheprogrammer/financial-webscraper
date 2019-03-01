@@ -47,7 +47,7 @@ export class StockList {
 		})
 	}
 	
-	private static filterStockProps(data: any, ticker: string): STOCK{
+	public static filterStockProps(data: any, ticker: string): STOCK{
 		// during times of the market, data must be retrieved multiple times
 		if(!data){
 			console.error('Data not retrieved, fetching again')
