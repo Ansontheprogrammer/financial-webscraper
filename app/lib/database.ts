@@ -1,9 +1,20 @@
 import mongoose from 'mongoose';
-import { STOCK_MODEL } from './finviz';
+import { STOCK_MODEL, StockList } from './finviz';
 
 type STOCK = {
 	ticker: string,
 	id: string
+}
+
+type STOCK_LIST = {
+	list: string[],
+	name: string,
+	email: string,
+}
+
+type STOCK_LIST_LOOKUP = {
+	stockListID: string,
+	name: string
 }
 
 const url = `mongodb://Anson:m4cGCRr2lKENVAT7@cluster0-shard-00-00-mqzwm.mongodb.net:27017,cluster0-shard-00-01-mqzwm.mongodb.net:27017,cluster0-shard-00-02-mqzwm.mongodb.net:27017/test?ssl=true&replicaSet=Cluster0-shard-0&authSource=admin&retryWrites=true`
@@ -96,11 +107,11 @@ export class Database {
 		})
 	}
 
-	public static updateUserStockList(email, stockListInfo): Promise<any>{
+	public static updateUserStockList(email: string, stockListLookup): Promise<any>{
 		return new Promise((resolve, reject) => {
 			Database.findUserInDatabase(email, true).then(docs => {
 				const doc = docs[0];
-				(doc as any).stockListCollection.push({stockListInfo});
+				(doc as any).stockListCollection.push({stockListLookup});
 				doc.save(function(err, updatedDoc){
 					if(err) reject(err);
 					console.log('Finished update')
@@ -110,11 +121,11 @@ export class Database {
 		})
 	}
 	
-	public static saveUser(stockListInfo, email): Promise<any>{
+	public static saveUser(stockListLookup, email: string): Promise<any>{
 		return new Promise((resolve, reject) => {
 			const UserModel = mongoose.model('User', schemas.user);
 			const user = new UserModel({ 
-				stockListCollection: [ stockListInfo ],
+				stockListCollection: [ stockListLookup ],
 				email,
 			})
 
@@ -126,7 +137,7 @@ export class Database {
 		})
 	}
 
-	public static saveStockList(stockList: STOCK_MODEL, email: string, name: string): Promise<{update: boolean, stockListInfo: any}>{
+	public static saveStockList(stockList: STOCK_MODEL, email: string, name: string): Promise<{update: boolean, stockListLookup: STOCK_LIST_LOOKUP}>{
 		return new Promise((resolve, reject) => {
 			const StockListModel = mongoose.model('StockList', schemas.stockList);
 			const list = new StockListModel(stockList);
@@ -134,23 +145,23 @@ export class Database {
 			list.save(function(err, stockListID: mongoose.Document){
 				if(err) reject(err);
 				console.log('Saved new stock list of ID:', stockListID._id)
-				const stockListInfo = { stockListID: stockListID._id, name };
+				const stockListLookup: STOCK_LIST_LOOKUP= { stockListID: (stockListID._id as string), name };
 				Database.findUserInDatabase(email).then(doc => {
-			    	doc.length ? resolve({update: true, stockListInfo}) : resolve({update: false, stockListInfo})
+			    	doc.length ? resolve({update: true, stockListLookup}) : resolve({update: false, stockListLookup})
 				}).catch(err => reject(err))
 			})
 		})
 	}
 	
-	public static saveStock(stockObject: any, email: string, name: string, res): Promise<any>{
+	public static saveStock(userStockList: StockList, email: string, name: string, res): Promise<any>{
 		/* TODO: must make a time stamp function to call this function once a day to update 
 			all present stockData
 		*/
 		// creating stock model
 		return new Promise((resolve, reject) => {
-			const stocks = stockObject.getStockList()
+			const stocks = userStockList.getStockList()
 			const StockModel = mongoose.model('Stock', schemas.stock);
-			const listOfStockTickers = [];
+			const listOfStockTickers: string[] = [];
 			// recursively create and save a stock model for each stock
 			(function recursive(){
 				const stockModel = new StockModel(stocks[0]);
@@ -162,7 +173,7 @@ export class Database {
 						id: stockID._id
 					});
 					listOfStockTickers.push(stocks[0].ticker);
-					stockObject.shiftStockList()
+					userStockList.shiftStockList()
 					if(stocks.length >= 1) recursive();
 					else {
 						const stockList = { 
@@ -179,15 +190,15 @@ export class Database {
 		})
 	}
 	
-	private static async storingDataFlow(stockList, email, name){
+	private static async storingDataFlow(stockList: STOCK_LIST, email: string, name: string){
 		try {
 			const saveOrUpdate = await Database.saveStockList(stockList, email, name);
 			if(saveOrUpdate.update){
 				console.log('Updating user: ', email);
-				await Database.updateUserStockList(email, saveOrUpdate.stockListInfo)
+				await Database.updateUserStockList(email, saveOrUpdate.stockListLookup)
 			} else {
 				console.log('Saving new user: ', email)
-				await Database.saveUser(saveOrUpdate.stockListInfo, email)
+				await Database.saveUser(saveOrUpdate.stockListLookup, email)
 			}
 			return Promise.resolve();
 		} catch(err) { Promise.reject(err) }
