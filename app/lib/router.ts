@@ -9,7 +9,7 @@ const setResponseHeader = res => {
 export function getUser(req: any, res: any, next: any){
 	setResponseHeader(res)
 	const email = req.params.email
-	Database.findUserInDatabase(email, true).then(data => {
+	new Database().findUserInDatabase(email, true).then(data => {
 		console.log(`Sending user ${email}`)
 		res.json(data)
 	}, err => res.status(400).send(JSON.stringify(`No user was found under: email - ${email}`)))
@@ -18,7 +18,7 @@ export function getUser(req: any, res: any, next: any){
 export function getStockList(req: any, res: any, next: any){
 	setResponseHeader(res)
 	const { email, name } = req.params
-	Database.findStockListInDatabase(email, name).then(data => {
+	new Database().findStockListInDatabase(email, name).then(data => {
 		console.log(`Sending portfolio ${name} with tickers: ${data.map(stock => stock.ticker)}`)
 		res.json(data)
 	}, err =>  res.status(400).send(JSON.stringify(`No stock list was found under: email - ${name}`)))
@@ -39,7 +39,7 @@ export function retrieveStockData (req: any, res: any, next: any){
 				stockList.pushToStockList(stock)
 				count++
 				if(count === tickerList.length|| tickerList.length === 1) {
-					if(email) Database.saveStock(stockList, email, name, res).then(() => res.sendStatus(200), err => next(err)) 
+					if(email) new Database().saveStock(stockList, email, name, res).then(() => res.sendStatus(200), err => next(err)) 
 					else res.json(stockList.getStockList())
 				}
 			}, err => {

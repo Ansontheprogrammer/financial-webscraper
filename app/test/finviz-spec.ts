@@ -8,6 +8,7 @@ const request = supertest(app)
 
 describe('Stocklist class', () => { 
     const stockList = new StockList();
+
     const expectedStockData = { 
         ticker: 'NYMT',
         dividendPercent: '13.33%',
@@ -20,6 +21,7 @@ describe('Stocklist class', () => {
         profitMargin: '18.70%',
         operatingMargin: '23.20%',
         marketCap: '1.02B' }
+
     const sampleStockData = {
         'Dividend %': '13.4%',
         ROE: '2,3%',
@@ -46,18 +48,20 @@ describe('Stocklist class', () => {
         grossMargin: '4.32%',
         profitMargin: '7.23%',
         operatingMargin: '4.32%',
-        marketCap: '1.03B' }
+        marketCap: '1.03B' 
+    }
 
    it('should get stock list', () => {
         assert.deepEqual(stockList.getStockList(), [], 'should be an empty array')
    })
    
    it('should retieve stock data from finviz', function(done) {
-    this.timeout (10000);
-    stockList.getStockDataFromFinviz('NYMT').then(stock => {
-        assert.deepEqual(stock, expectedStockData);  
-        done()
-      }, done)
+       // create a stub of the finviz package because stock data changes frequently
+       this.timeout(10000)
+        stockList.getStockDataFromFinviz('NYMT').then(stock => {
+            assert.deepEqual(JSON.stringify(stock), JSON.stringify(expectedStockData));  
+            done()
+        }, done)
     })
 
     it('should push to stockList property', () => {

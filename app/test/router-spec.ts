@@ -2,10 +2,9 @@ import 'mocha';
 import { app } from '../app'
 import * as assert from 'assert';
 import supertest from 'supertest';
-import sinon from 'sinon';
-import nock from 'nock';
 
 const request = supertest(app)
+
 
 describe('GET User route', () => { 
     const expectedUser = [
@@ -41,7 +40,7 @@ describe('GET User route', () => {
         .end(function(err, res) {
             if (err) done(err);
             else {
-                assert.deepEqual(res.body, expectedUser);
+                assert.deepEqual(res.body[0], expectedUser);
                 done()
             }
         });
@@ -49,6 +48,7 @@ describe('GET User route', () => {
 })
 
 describe('GET Stock list route', () => {    
+
     const expectedStockList = [
         {
           "_id": "5c54568a6855e61af094a49e",
