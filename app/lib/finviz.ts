@@ -14,21 +14,26 @@ export type STOCK = {
 	marketCap: string
 }
 
-export type STOCK_MODEL = {
-	name: string,
-	list: string[],
-	email: string,
-}
-
 export class StockList {
 	private stockList: STOCK[];
+	private tickerList: string[];
 
     constructor(){
-		this.stockList = [];
+			this.stockList = [];
+			this.tickerList = [];
     }
 
-    public getStockList(): STOCK[] {
-        return this.stockList;
+  public getStockList(): STOCK[] {
+      return this.stockList;
+	}
+
+	public getTickerList(): string[] {
+		return this.tickerList
+	}
+
+	public setTickerList(tickerList: string[]): void {
+		if(!!this.tickerList) console.log('Ticker list is already set');
+		this.tickerList = tickerList;
 	}
 	
 	public shiftStockList(): void {

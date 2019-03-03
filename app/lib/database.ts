@@ -111,7 +111,7 @@ export class Database {
 		return new Promise((resolve, reject) => {
 			this.findUserInDatabase(email, true).then(docs => {
 				if(stockList.toObject())
-				(docs[0] as any).stockListCollection.push({stockList});
+				(docs[0] as any).stockListCollection.push({stockList });
 				docs[0].save(function(err, updatedDoc){
 					if(err) reject(err);
 					resolve();
