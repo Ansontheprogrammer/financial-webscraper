@@ -32,33 +32,41 @@ export class StockList {
 	}
 
 	public setTickerList(tickerList: string[]): void {
-		if(!!this.tickerList) console.log('Ticker list is already set');
+		if(this.tickerList.length >= 1) console.log('Ticker list is already set');
 		this.tickerList = tickerList;
-	}
-	
-	public shiftStockList(): void {
-		this.stockList.shift();
 	}
 
 	public pushToStockList(stock: STOCK): void {
 		this.stockList.push(stock)
 	}
 
-	public getStockDataFromFinviz(ticker: string): Promise<STOCK>{
-		return new Promise((resolve, reject) => {
-			finviz.getStockData(ticker)
-			.then((allStockData: any) => resolve(StockList.filterStockProps(allStockData, ticker)))
-			.catch((err: any) => reject(err))
-		})
+	public async retrieveStocksFromFinviz(i: number): Promise<STOCK>{
+		// Helper function that will return unfiltered stock dats 
+		let stock = {}
+
+		try {
+			stock = await finviz.getStockData(this.tickerList[i])
+		} catch (e) {
+			// if we can't retrieve the stock lets try one more time
+			try {
+				stock = await finviz.getStockData(this.tickerList[i])
+			} catch (e) { throw e }
+		}
+		// filter stock data and push to stock list
+		return  this.filterStockProps(stock, this.tickerList[i])
+	}
+
+	public async getStockDataFromFinviz(): Promise<void>{
+	  for(let i = 0; i <= this.tickerList.length - 1; i++){
+			try {
+				 const stock = await this.retrieveStocksFromFinviz(i)
+				 this.pushToStockList(stock)
+			} catch(e) { console.error(	`${this.tickerList[i]} was not saved	`, e)	}
+		}
 	}
 	
-	public static filterStockProps(data: any, ticker: string): STOCK{
-		// during times of the market, data must be retrieved multiple times
-		if(!data){
-			console.error('Data not retrieved, fetching again')
-			new StockList().getStockDataFromFinviz(ticker)
-		} else { console.log('Retrieved Data for: ', ticker) }
-	
+	public  filterStockProps(data: any, ticker: string): STOCK{
+
 		return {
 			ticker,
 			dividendPercent : data['Dividend %'],
