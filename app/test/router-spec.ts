@@ -7,28 +7,24 @@ const request = supertest(app)
 
 
 describe('GET User route', () => { 
-    const expectedUser = [
-        {
-            __v: 0,
+    const expectedUser = {
+            __v: 21,
             _id: '5c54568b6855e61af094a4a4',
             email: 'ansonervin@yahoo.com',
-            stockListCollection: [
-            {
+            stockListCollection: {
                 _id: '5c54568b6855e61af094a4a5',
+                list: [],
                 name: 'tech',
                 stockListID: '5c54568b6855e61af094a4a3'
             }
-            ]
         }
-    ]
 
-    it('should return a no user was found error, code 400', done => {
+    it('should return a no user was found error, code 404', done => {
         request
         .get('/api/getUser/financeTesting@gmail.com') 
-        .expect(400)
+        .expect(404)
         .end(function(err, res) {
             if(err) done(err)
-            assert.equal(res.text, JSON.stringify('No user was found under: email - financeTesting@gmail.com'))
             done()
         });
     })
@@ -40,6 +36,7 @@ describe('GET User route', () => {
         .end(function(err, res) {
             if (err) done(err);
             else {
+                res.body[0].stockListCollection = res.body[0].stockListCollection[0]
                 assert.deepEqual(res.body[0], expectedUser);
                 done()
             }
@@ -49,8 +46,7 @@ describe('GET User route', () => {
 
 describe('GET Stock list route', () => {    
 
-    const expectedStockList = [
-        {
+    const expectedStockList = {
           "_id": "5c54568a6855e61af094a49e",
           "ticker": "AAPL",
           "dividendPercent": "1.75%",
@@ -64,74 +60,13 @@ describe('GET Stock list route', () => {
           "operatingMargin": "26.70%",
           "marketCap": "799.18B",
           "__v": 0
-        },
-        {
-          "_id": "5c54568a6855e61af094a4a0",
-          "ticker": "CRON",
-          "dividendPercent": "-",
-          "ROE": "-",
-          "ROA": "-",
-          "ROI": "-",
-          "EPSPast5Y": "-",
-          "price": "19.68",
-          "grossMargin": "-",
-          "profitMargin": "-",
-          "operatingMargin": "-",
-          "marketCap": "3.52B",
-          "__v": 0
-        },
-        {
-          "_id": "5c54568a6855e61af094a49f",
-          "ticker": "GOOG",
-          "dividendPercent": "-",
-          "ROE": "-",
-          "ROA": "-",
-          "ROI": "-",
-          "EPSPast5Y": "-",
-          "price": "1116.37",
-          "grossMargin": "-",
-          "profitMargin": "-",
-          "operatingMargin": "-",
-          "marketCap": "760.15B",
-          "__v": 0
-        },
-        {
-          "_id": "5c54568a6855e61af094a4a2",
-          "ticker": "MSFT",
-          "dividendPercent": "1.76%",
-          "ROE": "23.10%",
-          "ROA": "7.40%",
-          "ROI": "17.60%",
-          "EPSPast5Y": "8.50%",
-          "price": "104.43",
-          "grossMargin": "65.20%",
-          "profitMargin": "16.40%",
-          "operatingMargin": "32.40%",
-          "marketCap": "794.37B",
-          "__v": 0
-        },
-        {
-          "_id": "5c54568a6855e61af094a4a1",
-          "ticker": "NYMT",
-          "dividendPercent": "12.74%",
-          "ROE": "13.90%",
-          "ROA": "0.80%",
-          "ROI": "0.80%",
-          "EPSPast5Y": "-11.60%",
-          "price": "6.28",
-          "grossMargin": "30.40%",
-          "profitMargin": "19.40%",
-          "operatingMargin": "24.50%",
-          "marketCap": "1.06B",
-          "__v": 0
         }
-      ]
     
 
-    it('should return a 400 error', done => {
+    it('should return a 404 error', done => {
         request
         .get('/api/getStockList/ansonervin@yahoo.com/error') 
-        .expect(400)
+        .expect(404)
         .end(function(err, res) {
             if (err) done(err);
             else {
@@ -148,7 +83,7 @@ describe('GET Stock list route', () => {
         .end(function(err, res) {
             if (err) done(err);
             else {
-                assert.deepEqual(JSON.stringify(res.body, null, 2), JSON.stringify(expectedStockList, null, 2))
+                assert.deepEqual(JSON.stringify(res.body[0], null, 2), JSON.stringify(expectedStockList, null, 2))
                 done()
             }
         });
