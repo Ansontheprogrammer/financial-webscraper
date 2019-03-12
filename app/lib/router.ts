@@ -9,54 +9,36 @@ const setResponseHeader = res => {
 export function getUser(req: any, res: any, next: any){
 	setResponseHeader(res)
 	const email = req.params.email
-	new Database().findUserInDatabase(email, true).then(data => {
+	new Database(email).findUserInDatabase(email, true).then(user => {
+		// if user is not found return a 404 error
+		if(!user) return res.status(404).send(JSON.stringify(`No user was found under: email - ${email}`)) 
 		console.log(`Sending user ${email}`)
-		res.json(data)
-	}, err => res.status(400).send(JSON.stringify(`No user was found under: email - ${email}`)))
+		res.json(user)
+	}, next)
 }
 
 export function getStockList(req: any, res: any, next: any){
 	setResponseHeader(res)
 	const { email, name } = req.params
-	new Database().findStockListInDatabase(email, name).then(data => {
-		console.log(`Sending portfolio ${name} with tickers: ${data.map(stock => stock.ticker)}`)
-		res.json(data)
-	}, err =>  res.status(400).send(JSON.stringify(`No stock list was found under: email - ${name}`)))
+	new Database(email).findStockListInDatabase(name).then(stockList => {
+		if(!stockList) return res.status(404).send(JSON.stringify(`No stock list was found under: email - ${name}`))
+		console.log(`Sending portfolio ${name} with tickers: ${stockList.map(stock => stock.ticker)}`)
+		res.json(stockList)
+	}, next)
 }
 
-export function retrieveStockData (req: any, res: any, next: any){
+export function startUserFlow(req: any, res: any, next: any){
 	// This route takes a name, and email that are strings. Also the tickerList must be an array.
 	setResponseHeader(res);
 	const { email, name } = req.body;
-	let tickerList: string[] = req.body.tickerList;
-	let count = 0;
-	let retries = 2;
+	// finviz package requires uppercase tickers
+	const tickerList: string[] = req.body.tickerList.map(ticker => ticker.toUpperCase());
 	const stockList = new StockList();
+	const database = new Database(email)
 
-	function retrieve(){
-		tickerList.forEach((ticker: string) => {
-			stockList.getStockDataFromFinviz(ticker).then(stock => {
-				stockList.pushToStockList(stock)
-				count++
-				if(count === tickerList.length|| tickerList.length === 1) {
-					if(email) new Database().saveStock(stockList, email, name, res).then(() => res.sendStatus(200), err => next(err)) 
-					else res.json(stockList.getStockList())
-				}
-			}, err => {
-				// if err call finviz up to 3 times to get stock data
-				if(!retries) {
-					res.sendStatus(500)
-					next(`THERE WAS AN ERROR COLLECTING ALL STOCK DATA, HERE IS YOUR UPLOADED STOCKS`);
-				}
-				else {
-					retries--
-					retrieve()
-				}
-			})	
-		})
-	}
-
-	// convert all stock tickers to capital letters before retrieving stock data
-	tickerList = tickerList.map(ticker => ticker.toUpperCase());
-	retrieve()
+	stockList.setTickerList(tickerList);
+	stockList.getStockDataFromFinviz()
+	.then(() => database.storeUserAndStockList(stockList, email, name))
+	.then(() => res.sendStatus(200))
+	.catch(next)
 }
